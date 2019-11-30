@@ -49,7 +49,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Crypto.cs" />
     <Compile Include="Steganography.cs">
       <SubType>Form</SubType>
     </Compile>
