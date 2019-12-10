@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Text;
 
 namespace Steganography
 {
@@ -28,15 +29,18 @@ namespace Steganography
             int zeros = 0;
             
             int R = 0, G = 0, B = 0;
-            
+
             for (int i = 0; i < bmp.Height; i++)
             {
                 for (int j = 0; j < bmp.Width; j++)
                 {
+                    if (!((i % 2 == 0) && (j % 2 == 0)))
+                        continue;
+
                     // отримуємо піксел
                     Color pixel = bmp.GetPixel(j, i);
 
-                    // тепер очистітимо наймолодший біт (LSB) від кожного пікселя
+                    // тепер очистимо наймолодший біт (LSB) від кожного пікселя
                     R = pixel.R - pixel.R % 2;
                     G = pixel.G - pixel.G % 2;
                     B = pixel.B - pixel.B % 2;
@@ -133,11 +137,13 @@ namespace Steganography
 
             // ініціюєємо пусту змінну для тексту
             string extractedText = String.Empty;
-            
+
             for (int i = 0; i < bmp.Height; i++)
             {
                 for (int j = 0; j < bmp.Width; j++)
                 {
+                    if (!((i % 2 == 0) && (j % 2 == 0)))
+                        continue;
                     Color pixel = bmp.GetPixel(j, i);
                     
                     for (int n = 0; n < 3; n++)
@@ -169,10 +175,10 @@ namespace Steganography
                             // може бути нуль якшо це кінець
                             if (charValue == 0)
                             {
-                                return extractedText;
+                                return UTF8ToWin1251(extractedText);
                             }
-                            
-                            char c = (char)charValue;
+
+                            var c = char.ConvertFromUtf32(charValue + 1024);//(char)charValue;
 
                             extractedText += c.ToString();
                         }
@@ -180,7 +186,16 @@ namespace Steganography
                 }
             }
 
-            return extractedText;
+            return UTF8ToWin1251(extractedText);
+        }
+
+        static string UTF8ToWin1251(string sourceStr)
+        {
+            Encoding utf8 = Encoding.UTF8;
+            Encoding win1251 = Encoding.GetEncoding("Windows-1251");
+            byte[] utf8Bytes = utf8.GetBytes(sourceStr);
+            byte[] win1251Bytes = Encoding.Convert(utf8, win1251, utf8Bytes);
+            return win1251.GetString(win1251Bytes);
         }
 
         public static int reverseBits(int n)
